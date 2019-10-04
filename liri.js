@@ -3,8 +3,9 @@ require("dotenv").config();
 var Spotify = require("node-spotify-api");
 // Import the API keys
 var keys = require("./keys");
-let request = require("request");
 
+var axios = require("axios");
+var fs = require("fs");
 // Initialize the spotify API client with keys
 var spotify = new Spotify(keys.spotify);
 
@@ -41,26 +42,50 @@ var spotifySong = function() {
 
   function concertThis(){
     
-    var queryURL = "https://rest.bandsintown.com/artists/" + userQuery + "/events?app_id=codingbootcamp"
+    var concertURL = "https://rest.bandsintown.com/artists/" + userQuery + "/events?app_id=codingbootcamp"
 
-    request(queryURL, function(response){
-      let array = JSON.parse();
-    console.log("Venue: " + array.data[0].venue.name)
-    if (region === ""){
-      console.log("Location" + array.data[0].venue.city + "," + array.data.venue.country)
-    } else {
-      console.log("Location" + city + "," + region)
-    }
-    var eventDate = moment(array.data[0].datetime).format('MM/DD/YYYY');
-    console.log("Date of the Event:", eventDate);
-
-  })
+    axios.get(concertURL).then(function (response){
+      // var array = JSON.stringify(response)      
+          console.log(response.data[1].venue.name)
+          console.log(response.data[1].venue.city)
+          var date = (response.data[1].datetime)
+          console.log(date)
+          // console.log("Location" + response.data[0].venue.city + "," + response.data.venue.country)
+    })  
 }
+
+function omdbAPI(){
+  if (userQuery === undefined) {
+    userQuery = "Mr. nobody";
+  };
+  var omdbURL = "http://www.omdbapi.com/?t=" + userQuery + "&apikey=2c69a114"
+  axios.get(omdbURL).then(function (response){
+    console.log(response.data.Title)
+    console.log(response.data.Released)
+    console.log(response.data.imdbRating)
+    console.log(response.data.Ratings[1])
+    console.log(response.data.Language)
+    console.log(response.data.Plot)
+    console.log(response.data.Actors)
+})
+}
+
+function doWhat() { 
+  fs.readFile("random.txt", "utf8", function (error, data) {
+      if (error) {
+          return console.log(error);      }
+    
+      var data = data.split(",");     
+      userInput = data[0];
+      userQuery = data[1];     
+      userinput(userInput, userQuery);
+  });
+};
 
 
 
 // user input 
-  var userinput = function(userInput, userQuery){
+  var userinput = function(userInput){
       switch (userInput) {
           case "spotify-this-song":
             spotifySong();
@@ -68,12 +93,16 @@ var spotifySong = function() {
           case "concert-this":
             concertThis();
           break;
-      }
-  }
+          case "movie-this":
+            omdbAPI();
+          break;
+          case "do-what-it-says":
+            doWhat();
+          break;
 
+          default:
+    console.log(`I'm sorry!`)
+}
+      }
   userinput(userInput, userQuery)
-  // var command = function(targetAPI, pickSong) {
-  //   userinput(targetAPI, pickSong);
-  // }
-  
-  //   command(process.argv[2], process.argv[3]);
+ 
